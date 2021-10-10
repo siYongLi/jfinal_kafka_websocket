@@ -1,0 +1,116 @@
+<html>
+<head>
+    <title>Redis查询</title>
+    <script>
+        var socket;
+        if (window.WebSocket) {
+            // 这里的 /myapp.ws 必须和以上 @ServerEndpoint("/myapp.ws")
+            // 中配置的内容保持一致
+            socket = new WebSocket("ws://#(address)/redis.ws");
+            socket.onmessage = function (event) {
+                var chat = document.getElementById('chat');
+                chat.innerHTML = chat.innerHTML + event.data + "<br />";
+            };
+        } else {
+            alert("Your browser does not support Websockets. (Use Chrome)");
+        }
+
+        function send(message) {
+            if (!window.WebSocket) {
+                return false;
+            }
+            if (message == '') {
+                alert("key不允许为空");
+                return false;
+            }
+            if (socket.readyState == WebSocket.OPEN) {
+                socket.send(message);
+            } else {
+                alert("The socket is not open.");
+            }
+            return false;
+        }
+
+        function setCursorPosition(index) {
+            var elem = event.srcElement;
+            var val = elem.value
+            var len = val.length
+            // 超过文本长度直接返回
+            if (len < index) return
+            setTimeout(function () {
+                elem.focus()
+                if (elem.setSelectionRange) { // 标准浏览器
+                    elem.setSelectionRange(index, index)
+                } else { // IE9-
+                    var range = elem.createTextRange()
+                    range.moveStart("character", -len)
+                    range.moveEnd("character", -len)
+                    range.moveStart("character", index)
+                    range.moveEnd("character", 0)
+                    range.select()
+                }
+            }, 10)
+        }
+    </script>
+    <style type="text/css">
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        html, body, ul, ol, dl, li, dt, dd, p, blockquote, fieldset, legend, img, form, h1, h2, h3, h4, h5, h6 {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+
+        }
+
+        .center {
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+        }
+
+        .chatform {
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 0;
+            width: 96%;
+        }
+
+        form {
+            width: 100%;
+        }
+
+        label {
+            display: inline;
+            width: 100px;
+        }
+
+        #msg {
+            display: inline;
+            width: 100%;
+        }
+
+    </style>
+</head>
+<body>
+<div class="page">
+    <div class="center">
+        <h1 align="center">Redis查询</h1>
+        <div id="chat" style="height:80%;width: 100%; border-bottom:1px dashed #000;margin-left: 1em"></div>
+
+        <form onsubmit="return false;" class="chatform" action="">
+            <label for="msg">当前环境使用的redis为: #(redisIp)</label>
+            <textarea placeholder="输入key按enter键即可查询" rows="5" name="message" id="msg"
+                      onkeypress="if(event.keyCode==13) { send(this.form.message.value); this.value=''; setCursorPosition(0)} "></textarea>
+        </form>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<html>
+<head>
+    <title>Kafka消息推送</title>
+    <style type="text/css">
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        html, body, ul, ol, dl, li, dt, dd, p, blockquote, fieldset, legend, img, form, h1, h2, h3, h4, h5, h6 {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            height: 100%;
+        }
+
+        .center {
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+        }
+
+        .chatform {
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 0;
+            width: 96%;
+            height: 20%;
+        }
+
+        form {
+            width: 100%;
+        }
+
+        label {
+            display: inline;
+            width: 100px;
+        }
+
+        #msg {
+            display: inline;
+            width: 100%;
+        }
+    </style>
+
+</head>
+<body>
+<div class="page">
+    <div class="center">
+        <h1 align="center">Kafka消息推送</h1>
+        <div id="chat" style="height:70%;width: 100%; border-bottom:1px dashed #000;margin-left: 1em"></div>
+
+        <form onsubmit="return false;" class="chatform" action="">
+            topic: <select id="selTopic" onchange="changeTopic(this.value)">
+                #for(x : topics)
+                    <option value ="#(x)">#(x)</option>
+                #end
+            </select>
+            </br>
+            <label for="msg">kafka: #(kafkaIp)</label>
+            <textarea rows="10" name="message" id="msg" onkeypress="if(event.keyCode==13) { send(this.form.message.value); this.value=''; setCursorPosition(0)} "></textarea>
+        </form>
+    </div>
+</div>
+<script src="/html/jquery.min.js"></script>
+<script>
+    if(!window.localStorage){
+        alert("please用google浏览器 (●'◡'●)");
+    }
+
+    var storage=window.localStorage;
+    var deftopic = getDefaultTopic();
+
+    var socket;
+    if (window.WebSocket) {
+        socket = new WebSocket("ws://#(address)/kafka.ws/"+deftopic);
+        socket.onmessage = function (event) {
+            var chat = document.getElementById('chat');
+            chat.innerHTML = chat.innerHTML + event.data + "<br />";
+        };
+    } else {
+        alert("Your browser does not support Websockets. (Use Chrome)");
+    }
+
+    function getDefaultTopic(){
+        var defaultTopic=storage.getItem("defaultTopic");
+        if (defaultTopic == '') {
+            defaultTopic = "#(defaultTopic)";
+            storage["defaultTopic"]=defaultTopic;
+        }
+        // 更改下拉框
+        $("#selTopic").val(defaultTopic);
+        return defaultTopic;
+    }
+
+    function send(message) {
+        if (!window.WebSocket) {
+            return false;
+        }
+        if (message == '') {
+            alert("不允许发送空数据");
+            return false;
+        }
+        if (socket.readyState == WebSocket.OPEN) {
+            socket.send(message);
+        } else {
+            alert("The socket is not open.");
+        }
+        return false;
+    }
+
+    function setCursorPosition(index) {
+        var elem = event.srcElement;
+        var val = elem.value
+        var len = val.length
+        // 超过文本长度直接返回
+        if (len < index) return
+        setTimeout(function () {
+            elem.focus()
+            if (elem.setSelectionRange) { // 标准浏览器
+                elem.setSelectionRange(index, index)
+            } else { // IE9-
+                var range = elem.createTextRange()
+                range.moveStart("character", -len)
+                range.moveEnd("character", -len)
+                range.moveStart("character", index)
+                range.moveEnd("character", 0)
+                range.select()
+            }
+        }, 10)
+    }
+
+    function changeTopic(changeTopic){
+        storage["defaultTopic"]=changeTopic;
+        socket = socket.close();
+        socket = new WebSocket("ws://#(address)/kafka.ws/"+changeTopic);
+        socket.onmessage = function (event) {
+            var chat = document.getElementById('chat');
+            chat.innerHTML = chat.innerHTML + event.data + "<br />";
+        };
+    }
+</script>
+</body>
+</html>
