@@ -5,11 +5,11 @@
 	
 	
 	<groupId>com.demo</groupId>
-	<artifactId>jboot_demo</artifactId>
+	<artifactId>jfinal_kafka_websocket</artifactId>
 	<version>4.9.08</version>
 	<packaging>jar</packaging>
 
-	<name>jboot_demo</name>
+	<name>jfinal_kafka_websocket</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
